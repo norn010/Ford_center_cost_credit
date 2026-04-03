@@ -1,0 +1,111 @@
+CREATE VIEW vw_SALES_CREDIT_RETURN
+AS
+
+-- ======================
+-- ใบกำกับสินเชื่อ
+-- ======================
+SELECT 
+    B.INVNO AS เลขที่เอกสาร,
+    B.INVLOC AS สาขา,
+    B.INVDATE AS วันที่ใบกำกับ,
+    B.PKNO AS เลขที่PK,
+    B.CUSCOD AS รหัสลูกค้า,
+
+    C.NAME1 + ' ' + C.NAME2 AS ชื่อลูกค้า,
+
+    B.TOTPRC AS ราคารวม,
+    B.BALANCE AS ยอดคงเหลือ,
+
+    (B.TOTPRC - B.BALANCE - (B.DEPOSAMT - B.DEPOSVAT)) AS ส่วนลด,
+
+    (B.BALANCE * B.VATRT / 100) AS ภาษีมูลค่าเพิ่ม,
+
+    B.BALANCE + (B.BALANCE * B.VATRT / 100) AS ยอดสุทธิ,
+
+    SUM(ROUND(A.AVGCOST * A.QTYOUT,2)) AS ต้นทุนรวม,
+
+    ((B.BALANCE + B.DEPOSAMT) - SUM(ROUND(A.AVGCOST * A.QTYOUT,2))) AS กำไร,
+
+    (B.DEPOSAMT - B.DEPOSVAT) AS เงินมัดจำสุทธิ,
+    B.DEPOSVAT AS ภาษีเงินมัดจำ,
+    B.DEPOSAMT AS เงินมัดจำรวม,
+
+    ((B.NETPRC + (B.DEPOSAMT + B.DEPOSVAT)) - 
+     SUM(ROUND(A.AVGCOST * A.QTYOUT,2))) AS ยอดรวมทั้งหมด,
+
+    B.FLAG AS สถานะ,
+    'ใบกำกับสินเชื่อ' AS ประเภทเอกสาร
+
+FROM L_IC_TRANS A
+JOIN L_IC_INVOI B
+    ON A.INVNO = B.INVNO
+    AND A.INVLOC = B.INVLOC
+
+LEFT JOIN GWM.dbo.CUSTMAST C
+    ON B.CUSCOD = C.CUSCOD
+
+WHERE 
+    B.FLAG = '2'
+    AND (B.CANCELID IS NULL OR B.CANCELID = '')
+    AND B.NETPRC <> 0
+
+GROUP BY 
+    B.INVNO,B.INVLOC,B.INVDATE,B.PKNO,B.CUSCOD,
+    C.NAME1,C.NAME2,
+    B.TOTPRC,B.BALANCE,B.VATAMT,B.NETPRC,B.FLAG,
+    B.DEPOSAMT,B.DEPOSVAT,B.VATRT
+
+
+UNION ALL
+
+
+-- ======================
+-- ใบคืนสินค้า
+-- ======================
+SELECT 
+    A.RTNNO AS เลขที่เอกสาร,
+    A.RTNLOC AS สาขา,
+    A.RTNDT AS วันที่ใบกำกับ,
+    B.INVNO AS เลขที่PK,
+    B.APCODE AS รหัสลูกค้า,
+
+    C.NAME1 + ' ' + C.NAME2 AS ชื่อลูกค้า,
+
+    -B.TOTPRC AS ราคารวม,
+    -B.NETPRC AS ยอดคงเหลือ,
+
+    0 AS ส่วนลด,
+
+    -(B.NETPRC * B.VATRT / 100) AS ภาษีมูลค่าเพิ่ม,
+
+    -(B.NETPRC + (B.NETPRC * B.VATRT / 100)) AS ยอดสุทธิ,
+
+    -SUM(ROUND(A.COST * A.QTYRTN,2)) AS ต้นทุนรวม,
+
+    -(B.TOTAL - SUM(ROUND(A.COST * A.QTYRTN,2))) AS กำไร,
+
+    0 AS เงินมัดจำสุทธิ,
+    0 AS ภาษีเงินมัดจำ,
+    0 AS เงินมัดจำรวม,
+    0 AS ยอดรวมทั้งหมด,
+
+    B.FLAG AS สถานะ,
+    'ใบคืนสินค้า' AS ประเภทเอกสาร
+
+FROM L_RT_TRAN A
+LEFT JOIN L_RT_INVOI B
+    ON A.RTNLOC = B.RTNLOC
+    AND A.RTNNO = B.RTNNO
+
+LEFT JOIN GWM.dbo.CUSTMAST C
+    ON B.APCODE = C.CUSCOD
+
+WHERE 
+    B.FLAG = '7'
+    AND (B.CANCELID IS NULL OR B.CANCELID = '')
+    AND ISNULL(B.JOBNO,'') = ''
+
+GROUP BY 
+    A.RTNNO,A.RTNLOC,A.RTNDT,B.INVNO,B.APCODE,
+    C.NAME1,C.NAME2,
+    B.TOTPRC,B.VATAMT,B.NETPRC,B.FLAG,B.TOTAL,B.VATRT
