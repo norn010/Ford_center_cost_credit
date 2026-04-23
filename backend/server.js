@@ -36,6 +36,7 @@ app.use('/api/automate-queue', require('./routes/queue'));
 app.use('/api/debt-clearing-batch', require('./routes/debt-clearing-batch'));
 app.use('/api/reconcile-batches', require('./routes/reconcile-batches'));
 app.use('/api/settlements', require('./routes/settlements'));
+app.use('/api/spare-credit', require('./routes/spare-credit'));
 
 // Health check
 app.get('/health', (req, res) => {

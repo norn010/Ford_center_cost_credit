@@ -9,6 +9,7 @@
 โปรเจกต์นี้แบ่งออกเป็น 2 ส่วนหลักคือ **Backend** (Node.js) และ **Frontend** (React) ตังนี้:
 
 ### 1. Backend (`/backend`)
+
 - **`server.js`**: ไฟล์หลักในการรัน Express Server และรวมโมดูลต่างๆ
 - **`db.js`**: ตัวจัดการการเชื่อมต่อกับ SQL Server (ใช้ `mssql` driver)
 - **`routes/`**: รวบรวม API สำหรับแต่ละหน้างาน
@@ -18,6 +19,7 @@
   - `init_db.js`: สคริปต์สร้างตารางใหม่ (Queue, Settlement Header, Settlement Item)
 
 ### 2. Frontend (`/frontend`)
+
 - **`src/pages/`**: รวบรวมหน้าจอหลักของระบบ
   - `Dashboard.jsx`: หน้านำเข้า Excel (รองรับ Ford/Nissan) และส่งเข้า Automation
   - `AutomateStatus.jsx`: ติดตามสถานะคิวที่กำลังประมวลผล
@@ -33,10 +35,12 @@
 ## 🛠️ วิธีการติดตั้งและรันระบบ (How to Run)
 
 ### 1. เตรียมฐานข้อมูล (SQL Server)
+
 - สร้างฐานข้อมูลใหม่ใน SQL Server (เช่นชื่อ `Ford_center_cost_credit`)
 - ตรวจสอบให้แน่ใจว่าเปิดการเชื่อมต่อผ่าน TCP/IP (Port 1433) เรียบร้อยแล้ว
 
 ### 2. ตั้งค่า Backend
+
 1. **เข้าไปที่โฟลเดอร์ backend:**
    ```bash
    cd backend
@@ -63,6 +67,7 @@
    ```
 
 ### 3. ตั้งค่า Frontend
+
 1. **เข้าไปที่โฟลเดอร์ frontend:**
    ```bash
    cd frontend
@@ -94,4 +99,5 @@
 - **`Automation_Queue_Ford_Center_cost_Credit_Settlement_Item`**: เก็บรายละเอียดรายการย่อยที่ระบุยอดเงินรายใบกำกับภาษี (Line Items)
 
 ---
-*จัดทำโดย: หนอน (Update: 03/04/2026)*
+
+_จัดทำโดย: หนอน (Update: 03/04/2026)_
