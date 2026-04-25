@@ -5,7 +5,7 @@ import { Plus, Edit2, Trash2, Check, X, Search, ChevronUp, ChevronDown } from 'l
 export default function BrandAccPage() {
   const [data, setData] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
-  const [editIndex, setEditIndex] = useState(-1);
+  const [editId, setEditId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
@@ -59,16 +59,16 @@ export default function BrandAccPage() {
     }
   };
 
-  const handleEditClick = (index, item) => {
-    setEditIndex(index);
-    setEditData({ ...item, oldBrand: item.Brand, oldBranch: item.Branch });
+  const handleEditClick = (item) => {
+    setEditId(item.ID);
+    setEditData({ ...item });
   };
 
   const handleSaveEdit = async () => {
     try {
-      const { oldBrand, oldBranch, ...updateData } = editData;
-      await api.put(`/spare-credit/brand-acc/${oldBrand}/${oldBranch}`, updateData);
-      setEditIndex(-1);
+      const { ID, ...updateData } = editData;
+      await api.put(`/spare-credit/brand-acc/${ID}`, updateData);
+      setEditId(null);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -76,10 +76,10 @@ export default function BrandAccPage() {
     }
   };
 
-  const handleDelete = async (brand, branch) => {
+  const handleDelete = async (id) => {
     if (window.confirm('คุณต้องการลบข้อมูลนี้ใช่หรือไม่?')) {
       try {
-        await api.delete(`/spare-credit/brand-acc/${brand}/${branch}`);
+        await api.delete(`/spare-credit/brand-acc/${id}`);
         fetchData();
       } catch (err) {
         console.error(err);
@@ -204,12 +204,10 @@ export default function BrandAccPage() {
 
             {/* DATA ROWS */}
             {filteredAndSortedData.map((item, idx) => {
-              // Find original index for editing
-              const originalIndex = data.findIndex(d => d.Brand === item.Brand && d.Branch === item.Branch);
-              const isEditing = editIndex === originalIndex;
+              const isEditing = editId === item.ID;
               
               return (
-                <tr key={`${item.Brand}-${item.Branch}-${idx}`} className="hover:bg-slate-50 transition-colors">
+                <tr key={`${item.ID || idx}`} className="hover:bg-slate-50 transition-colors">
                   <td className="p-4 text-sm text-slate-700">
                     {isEditing ? <input name="Brand" list="brand-list-edit" value={editData.Brand} onChange={e => handleChange(e, true)} className="w-full border rounded p-1" /> : item.Brand}
                     {isEditing && <datalist id="brand-list-edit">{[...new Set(data.map(i => i.Brand))].map(b => <option key={b} value={b} />)}</datalist>}
@@ -245,12 +243,12 @@ export default function BrandAccPage() {
                       {isEditing ? (
                         <>
                           <button onClick={handleSaveEdit} className="p-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-md transition-colors"><Check size={16} /></button>
-                          <button onClick={() => setEditIndex(-1)} className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"><X size={16} /></button>
+                          <button onClick={() => setEditId(null)} className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"><X size={16} /></button>
                         </>
                       ) : (
                         <>
-                          <button onClick={() => handleEditClick(originalIndex, item)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><Edit2 size={16} /></button>
-                          <button onClick={() => handleDelete(item.Brand, item.Branch)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"><Trash2 size={16} /></button>
+                          <button onClick={() => handleEditClick(item)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><Edit2 size={16} /></button>
+                          <button onClick={() => handleDelete(item.ID)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"><Trash2 size={16} /></button>
                         </>
                       )}
                     </div>

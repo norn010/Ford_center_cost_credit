@@ -5,7 +5,7 @@ GO
 CREATE TABLE Brand_Acc_Tb (
     ID INT PRIMARY KEY IDENTITY(1,1),
     Brand NVARCHAR(50),
-    Branch NVARCHAR(10),
+    Branch NVARCHAR(50),
     Shorts NVARCHAR(50),
     Acc1 NVARCHAR(20),
     Acc2 NVARCHAR(20),
@@ -19,7 +19,7 @@ CREATE TABLE Brand_Acc_Tb (
 CREATE TABLE Com_Ex_Tb (
     ID INT PRIMARY KEY IDENTITY(1,1),
     Brand NVARCHAR(50),
-    Branch NVARCHAR(10),
+    Branch NVARCHAR(50),
     LoneCode NVARCHAR(50),
     ExpressCode NVARCHAR(50),
     Cusname NVARCHAR(255)
