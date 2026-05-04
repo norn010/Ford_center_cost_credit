@@ -35,6 +35,11 @@ function Dashboard() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
+  // New states for Nissan branch modal
+  const [showBranchModal, setShowBranchModal] = useState(false);
+  const [nissanBranchInput, setNissanBranchInput] = useState('');
+  const [nissanBranch, setNissanBranch] = useState('');
+
   // Custom Scrollbar CSS (Injection)
   useEffect(() => {
     const style = document.createElement('style');
@@ -169,10 +174,9 @@ function Dashboard() {
 
           if (!acc[invoiceNo]) {
             order.push(invoiceNo);
-            const branchChar = String(invoiceNo)[0];
             acc[invoiceNo] = {
               Brand: 'Nissan',
-              สาขา: branchChar ? '0' + branchChar : null,
+              สาขา: nissanBranch,
               เลขที่ใบกำกับภาษี: invoiceNo,
               วันที่ใบกำกับภาษี: formatDate(getVal(row, 'TAXDATE')),
               รายได้ค่าอะไหล่: 0,
@@ -184,14 +188,14 @@ function Dashboard() {
               ต้นทุนน้ำมัน: 0,
               รวมต้นทุน: 0,
               ราคาขายรวมภาษี: 0,
-              ออกใบกำกับในนาม: getVal(row, 'CUSTAXNAME') || null,
-              รหัสลูกค้าที่ออกใบกำกับ: getVal(row, 'CUSTAX') || null,
+              ออกใบกำกับในนาม: getVal(row, 'CUSNAM') || null,
+              รหัสลูกค้าที่ออกใบกำกับ: getVal(row, 'CUSCOD') || null,
             };
           }
 
           // Financial sums
           acc[invoiceNo]['รายได้ค่าอะไหล่'] += Number(getVal(row, 'PARTNET') || 0);
-          acc[invoiceNo]['รายได้ค่าแรง']    += Number(getVal(row, 'SERVNET') || 0);
+          acc[invoiceNo]['รายได้ค่าแรง']    += Number(getVal(row, 'COLRNET') || 0);
           acc[invoiceNo]['รายได้ค่างานนอก'] += Number(getVal(row, 'OUTNET')  || 0);
           acc[invoiceNo]['รายได้ค่าน้ำมัน'] += Number(getVal(row, 'OILNET')  || 0);
           acc[invoiceNo]['ต้นทุนอะไหล่']    += Number(getVal(row, 'PARTCOS') || 0);
@@ -327,7 +331,7 @@ function Dashboard() {
               Ford
             </button>
             <button
-              onClick={() => { setBrand('Nissan'); setSalesFile(null); setSalesData([]); }}
+              onClick={() => { setBrand('Nissan'); setSalesFile(null); setSalesData([]); setNissanBranch(''); setNissanBranchInput(''); }}
               className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${brand === 'Nissan' ? 'bg-white text-primary-600 shadow-md scale-105' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
             >
               Nissan
@@ -364,7 +368,16 @@ function Dashboard() {
             <input
               type="file"
               accept=".xlsx, .xls"
-              onChange={(e) => setSalesFile(e.target.files[0])}
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  setSalesFile(e.target.files[0]);
+                  if (brand === 'Nissan') {
+                    setNissanBranchInput(nissanBranch); // default to last used branch
+                    setShowBranchModal(true);
+                  }
+                }
+              }}
+              onClick={(e) => { e.target.value = null; }}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
             />
             <div className="flex flex-col items-center text-center space-y-4">
@@ -444,6 +457,54 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Nissan Branch Modal */}
+      {showBranchModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">ระบุสาขาสำหรับไฟล์นี้</h2>
+            <p className="text-slate-500 mb-6 text-sm">กรุณาระบุชื่อหรือรหัสสาขาเพื่อนำไปใช้เป็นค่าสาขาสำหรับทุกรายการในไฟล์</p>
+            <input
+              type="text"
+              value={nissanBranchInput}
+              onChange={(e) => setNissanBranchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && nissanBranchInput.trim()) {
+                  setNissanBranch(nissanBranchInput.trim());
+                  setShowBranchModal(false);
+                }
+              }}
+              className="w-full border border-slate-300 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="เช่น 01, 02, หรือชื่อสาขา..."
+              autoFocus
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowBranchModal(false);
+                  setSalesFile(null);
+                  setNissanBranch('');
+                }}
+                className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={() => {
+                  if (nissanBranchInput.trim()) {
+                    setNissanBranch(nissanBranchInput.trim());
+                    setShowBranchModal(false);
+                  }
+                }}
+                disabled={!nissanBranchInput.trim()}
+                className="px-6 py-2.5 rounded-xl font-bold bg-primary-600 text-white hover:bg-primary-700 transition-colors shadow-md shadow-primary-200 disabled:opacity-50"
+              >
+                ยืนยันสาขา
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
